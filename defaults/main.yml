@@ -2,6 +2,7 @@
 grafana_version: latest
 grafana_yum_repo_template: etc/yum.repos.d/grafana.repo.j2
 grafana_manage_repo: true
+grafana_apt_key_checksum: sha256:3d4029689bc7e4444ec00abafa07f21e9c812b41f1123ab5bbe6f8c3e3f7ff8c
 
 # Should we use the provisioning capability when possible (provisioning require grafana >= 5.0)
 grafana_use_provisioning: true

@@ -1,10 +1,10 @@
 ---
 galaxy_info:
-  author: Pawel Krupa
+  author: anon8675309
   description: Grafana - platform for analytics and monitoring
   license: MIT
   company: none
-  min_ansible_version: 2.7
+  min_ansible_version: "2.7"
   platforms:
     - name: Ubuntu
       versions:

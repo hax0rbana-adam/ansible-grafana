@@ -1,8 +1,9 @@
 ---
 
-- block:
+- name: Updating apt cache and installing dependencies
+  block:
     - name: Update apt cache
-      apt:
+      ansible.builtin.apt:
         update_cache: true
       register: _pre_update_apt_cache
       until: _pre_update_apt_cache is succeeded
@@ -10,7 +11,7 @@
         - ansible_pkg_mgr == "apt"
 
     - name: Install dependencies
-      package:
+      ansible.builtin.package:
         name: "{{ grafana_dependencies }}"
         state: present
       register: _install_dep_packages
@@ -19,19 +20,19 @@
       delay: 2
 
 - name: Remove conflicting grafana packages
-  package:
+  ansible.builtin.package:
     name: grafana-data
     state: absent
   register: _old_grafana_pkgs
 
 - name: Clean apt cache
-  command: apt clean
+  ansible.builtin.command: apt clean
   when:
     - _old_grafana_pkgs is changed
     - ansible_pkg_mgr == "apt"
 
 - name: Add Grafana repository file [RHEL/CentOS]
-  template:
+  ansible.builtin.template:
     src: "{{ grafana_yum_repo_template }}"
     dest: "/etc/yum.repos.d/{{ grafana_yum_repo_template | basename | regex_replace('\\.j2$', '') }}"
     force: true
@@ -40,12 +41,17 @@
     - ansible_pkg_mgr in ['yum', 'dnf']
     - grafana_manage_repo
 
-- block:
+- name: Adding grafana's apt repo to our sources.list
+  when:
+    - ansible_pkg_mgr == "apt"
+    - grafana_manage_repo
+  environment: "{{ grafana_environment }}"
+  block:
     - name: Import Grafana GPG signing key [Debian/Ubuntu]
       ansible.builtin.get_url:
         url: "https://apt.grafana.com/gpg.key"
         dest: /usr/share/keyrings/grafana.gpg.asc
-        checksum: sha256:58052c148058ace26dbd01ce057afa5709fb9d39c8a8ab16800be3f42fc02ab2
+        checksum: "{{ grafana_apt_key_checksum }}"
       register: _add_apt_key
       until: _add_apt_key is succeeded
       retries: 5
@@ -60,13 +66,9 @@
       until: _update_apt_cache is succeeded
       retries: 5
       delay: 2
-  when:
-    - ansible_pkg_mgr == "apt"
-    - grafana_manage_repo
-  environment: "{{ grafana_environment }}"
 
 - name: Install Grafana
-  package:
+  ansible.builtin.package:
     name: "{{ grafana_package }}"
     state: "{{ (grafana_version == 'latest') | ternary('latest', 'present') }}"
   register: _install_packages
