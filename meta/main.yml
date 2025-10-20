@@ -1,6 +1,8 @@
 ---
 galaxy_info:
-  author: anon8675309
+  author: Adam
+  namespace: hax0rbana_adam
+  role_name: grafana
   description: Grafana - platform for analytics and monitoring
   license: MIT
   company: none
